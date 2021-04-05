@@ -1,29 +1,3 @@
-let canvas = document.createElement("canvas");
-var particlesElement = document.getElementsByClassName('particles')[0];
-particlesElement.appendChild(canvas);
-fitToContainer(canvas);
-const ctx = canvas.getContext("2d");
-
-const backgroundColor = particlesElement.getAttribute('background-color');
-const amount = particlesElement.getAttribute('amount');
-const color = hexToRgb(particlesElement.getAttribute('color'));
-
-
-function hexToRgb(hex) {
-	return {
-		r: '0x' + hex[1] + hex[2] | 0,
-		g: '0x' + hex[3] + hex[4] | 0,
-		b: '0x' + hex[5] + hex[6] | 0
-	}
-}
-
-function fitToContainer(canvas){
-  	canvas.style.width='100%';
-  	canvas.style.height='100%';
-  	canvas.width  = canvas.offsetWidth;
-  	canvas.height = canvas.offsetHeight;
-}
-
 class Vector {
 	constructor(x, y) {
 		this.x = x;
@@ -78,10 +52,10 @@ class ParticleManager {
 	}
 
 	createNew() {
-		const x = Math.random() * canvas.offsetWidth;
-		const y = Math.random() * canvas.offsetHeight + 1;
-		let dirX = (Math.random() * 1) + 1;
-		let dirY = (Math.random() * 1) + 1;
+		const x = Math.random() * canvas.width;
+		const y = Math.random() * canvas.height + 1;
+		let dirX = (Math.random() * 1) + 0.7;
+		let dirY = (Math.random() * 1) + 0.7;
 		dirX = Math.floor(Math.random() * 2) == 1? dirX : -dirX;
 		dirY = Math.floor(Math.random() * 2) == 1? dirX : -dirX;
 		let vector = new Vector(dirX, dirY);
@@ -96,12 +70,16 @@ class ParticleManager {
 		}
 	}
 
+	reset() {
+		this.particles = [];
+	}
+
 	update() {
 		let i = 0;
 		while(i != this.particles.length) {
 			let p = this.particles[i];
-			let beyondXBounds = p.X < 0 || p.X > canvas.offsetWidth;
-			let beyondYBounds = p.Y < 0 || p.Y > canvas.offsetHeight;
+			let beyondXBounds = p.X < 0 || p.X > canvas.width;
+			let beyondYBounds = p.Y < 0 || p.Y > canvas.height;
 			p.update();
 			if (beyondXBounds || beyondYBounds) {
 				this.particles.splice(i, 1);
@@ -113,11 +91,14 @@ class ParticleManager {
 		this.particles.forEach((p) => {
 			p.draw();
 			this.particles.forEach((p2) => {
-				var distance = Math.sqrt(Math.pow(p.X - p2.X, 2) + Math.pow(p.Y - p2.Y, 2));
-				var i = 0;
-				if (distance < canvas.offsetWidth/8) {
+				const distance = Math.sqrt(Math.pow(p.X - p2.X, 2) + Math.pow(p.Y - p2.Y, 2));
+				let i = 0;
+
+				let lengthLines = canvas.offsetWidth > canvas.height ? canvas.width / 8 : canvas.height / 7;
+
+				if (distance < lengthLines) {
 					ctx.beginPath(); 
-					var opacity = Math.abs((distance / (canvas.offsetWidth/8)) - 1);
+					var opacity = Math.abs((distance / lengthLines) - 1);
 					ctx.strokeStyle = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ', ' + opacity + ')';
 					ctx.moveTo(p.X,p.Y);
 					ctx.lineTo(p2.X,p2.Y);
@@ -129,9 +110,46 @@ class ParticleManager {
 	}
 }
 
-let pm = new ParticleManager();
+function resize(){    
+  	canvas.width = $(".particles").width();
+  	canvas.height = $(".particles").height();
+  	pm.reset();
+}
 
-for (var i = 50 - 1; i >= 0; i--) pm.createNew();
+function hexToRgb(hex) {
+	return {
+		r: '0x' + hex[1] + hex[2] | 0,
+		g: '0x' + hex[3] + hex[4] | 0,
+		b: '0x' + hex[5] + hex[6] | 0
+	}
+}
+
+function fitToContainer(canvas){
+  	canvas.style.width='100%';
+  	canvas.style.height='100%';
+  	canvas.width  = canvas.offsetWidth;
+  	canvas.height = canvas.offsetHeight;
+}
+
+var canvas = document.createElement("canvas");
+var particlesElement = document.getElementsByClassName('particles')[0];
+
+fitToContainer(canvas);
+const ctx = canvas.getContext("2d");
+particlesElement.appendChild(canvas);
+const backgroundColor = particlesElement.getAttribute('background-color');
+const amount = particlesElement.getAttribute('amount');
+const color = hexToRgb(particlesElement.getAttribute('color'));
+
+let pm = new ParticleManager();
+resize();
+
+$(document).ready(function(){	
+    $(window).on("resize", function(){                     
+        resize();
+    });
+});
+
 setInterval(function() {
   //engine loop
   pm.createNew();	

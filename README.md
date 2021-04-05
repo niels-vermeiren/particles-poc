@@ -2,7 +2,7 @@
 
 Simple particle engine in Javascript. 
 
-DEMO: https://jsfiddle.net/nielsvermeiren/tka05d49/17/
+DEMO: https://jsfiddle.net/nielsvermeiren/tka05d49/26/
 
 ## Usage
 
